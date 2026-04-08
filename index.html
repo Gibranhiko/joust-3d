@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>3D Joust</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #000;
+      overflow: hidden;
+      font-family: 'Courier New', monospace;
+      color: #fff;
+    }
+
+    #canvas { display: block; width: 100vw; height: 100vh; }
+
+    /* ── HUD ── */
+    #hud {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 14px 22px;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .hud-panel {
+      background: rgba(0,0,0,0.55);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      padding: 8px 16px;
+      text-align: center;
+      min-width: 90px;
+    }
+
+    .hud-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #aaa;
+    }
+
+    .hud-value {
+      font-size: 22px;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    #lives { color: #e74c3c; font-size: 16px; letter-spacing: 3px; }
+    #score { color: #f1c40f; }
+    #wave  { color: #3498db; }
+
+    /* ── Wave clear banner ── */
+    #wave-banner {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.75);
+      border: 2px solid #3498db;
+      border-radius: 12px;
+      padding: 16px 40px;
+      font-size: 26px;
+      color: #3498db;
+      text-align: center;
+      pointer-events: none;
+      text-shadow: 0 0 12px #3498db;
+      transition: opacity 0.4s;
+    }
+
+    /* ── Game over overlay ── */
+    #game-over {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.85);
+      border: 2px solid #e74c3c;
+      border-radius: 16px;
+      padding: 40px 60px;
+      text-align: center;
+    }
+
+    #game-over h1 {
+      font-size: 52px;
+      color: #e74c3c;
+      text-shadow: 0 0 20px #e74c3c;
+      margin-bottom: 12px;
+    }
+
+    #game-over p {
+      font-size: 22px;
+      color: #f1c40f;
+      margin-bottom: 28px;
+    }
+
+    #btn-restart {
+      background: #e74c3c;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 36px;
+      font-size: 18px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    #btn-restart:hover { background: #c0392b; }
+
+    /* ── Controls hint ── */
+    #controls-hint {
+      position: fixed;
+      bottom: 14px;
+      right: 18px;
+      font-size: 11px;
+      color: rgba(255,255,255,0.35);
+      text-align: right;
+      pointer-events: none;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <canvas id="canvas"></canvas>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-panel">
+      <div class="hud-label">Score</div>
+      <div class="hud-value" id="score">0</div>
+    </div>
+    <div class="hud-panel">
+      <div class="hud-label">Lives</div>
+      <div class="hud-value" id="lives">♥♥♥</div>
+    </div>
+    <div class="hud-panel">
+      <div class="hud-label">Wave</div>
+      <div class="hud-value" id="wave">1</div>
+    </div>
+  </div>
+
+  <!-- Wave clear banner -->
+  <div id="wave-banner" class="hidden">Wave Clear!</div>
+
+  <!-- Game Over -->
+  <div id="game-over" class="hidden">
+    <h1>GAME OVER</h1>
+    <p>Score: <span id="final-score">0</span></p>
+    <button id="btn-restart">Play Again</button>
+  </div>
+
+  <!-- Controls hint -->
+  <div id="controls-hint">
+    WASD / Arrows — move &nbsp;|&nbsp; Space — flap
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
