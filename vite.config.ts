@@ -9,13 +9,14 @@ export default defineConfig({
   },
   build: {
     target: 'es2022',
+    chunkSizeWarningLimit: 2500,
     rollupOptions: {
       output: {
         manualChunks: {
           three: ['three'],
-          physics: ['@dimforge/rapier3d-compat']
-        }
-      }
-    }
+          physics: ['@dimforge/rapier3d-compat'],
+        },
+      },
+    },
   }
 });

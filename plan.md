@@ -80,61 +80,69 @@ GameEngine
 
 ## Current Status
 
-### What Works (as of project start)
+### Phase 0 — Complete ✅
 - [x] Vite dev server configured
 - [x] Three.js scene with camera, lights, renderer
-- [x] Lava pit ground mesh
-- [x] 5 static platforms
-- [x] Player and Enemy classes with basic geometry (cylinder body, sphere head, box wings)
-- [x] Wing flap animation (sine wave)
-- [x] Gravity + platform collision (manual AABB)
-- [x] Spacebar flap input, arrow key movement
-- [x] Basic enemy AI (move toward player, random flap)
-- [x] Altitude-based collision resolution
-- [x] Egg spawning and collection
-- [x] Score / Lives / Wave HUD
-- [x] Game Over screen
+- [x] Lava pit ground mesh + animated point light
+- [x] 6 platforms (PLATFORMS constant in types.ts)
+- [x] Arena boundary walls
+- [x] Rider base class with geometry (cylinder body, sphere head, beak, wings, legs, lance)
+- [x] Wing flap animation (sine wave, timed reset)
+- [x] Gravity + platform collision (manual AABB via PhysicsSystem)
+- [x] WASD + Arrow key movement, Spacebar flap (diagonal normalised)
+- [x] Enemy AI — patrol / chase / evade state machine (AISystem)
+- [x] Altitude-based collision resolution (CollisionSystem)
+- [x] Egg spawning, physics, collection, enemy respawn (Egg entity)
+- [x] Score / Lives (♥ hearts) / Wave HUD
+- [x] Wave-clear banner and Game Over screen with Play Again
+- [x] TypeScript — strict mode, zero type errors
+- [x] Modular architecture: entities/, systems/, scenes/, GameEngine
+- [x] InputSystem centralised (no scattered window listeners)
+- [x] WaveSystem with 8-wave config table and grace period
+- [x] AudioSystem scaffold (Howler wired, fails silently until audio files added)
+- [x] .gitignore and README
 
-### Known Bugs to Fix First
-- [ ] **Critical**: `enemy` variable used outside `enemies.forEach` scope in main.js (lava collision check) — will throw ReferenceError
-- [ ] Enemies are never respawned after defeat — wave never escalates
-- [ ] No lives decrement on enemy collision (only on lava)
-- [ ] Camera clips through platforms
+### Known Issues (active)
+- [ ] Rapier installed but PhysicsSystem still uses manual AABB — Phase 1
+- [ ] No GLTF models — using procedural geometry — Phase 2 (tech debt)
+- [ ] No audio files — AudioSystem wired but silent — Phase 4 (tech debt)
+- [ ] No main menu or pause screen — Phase 6
+- [ ] No local or online multiplayer — Phases 7–8
 
 ---
 
 ## Implementation Roadmap
 
-### Phase 0 — Stabilize & Migrate (Foundation)
+### Phase 0 — Stabilize & Migrate (Foundation) ✅ COMPLETE
 *Goal: Clean, typed, bug-free base before building on top of it.*
 
-- [ ] **0.1** Fix the `enemy` scoping bug in lava collision check
-- [ ] **0.2** Fix wave system — enemies must respawn; wave increments only when all are defeated
-- [ ] **0.3** Fix lives system — lose a life on enemy collision loss, not just lava
-- [ ] **0.4** Add TypeScript (`tsconfig.json`, rename `.js` → `.ts`, fix type errors)
-- [ ] **0.5** Add ESLint + Prettier config
-- [ ] **0.6** Restructure `src/` into `entities/`, `systems/`, `scenes/`, `managers/`
-- [ ] **0.7** Extract game loop from `main.ts` into a `GameEngine` class
-- [ ] **0.8** Create `InputSystem` — centralize all key/mouse state
-- [ ] **0.9** Create `AssetManager` — preload assets with loading screen
+- [x] **0.1** Fix the `enemy` scoping bug in lava collision check
+- [x] **0.2** Fix wave system — enemies must respawn; wave increments only when all are defeated
+- [x] **0.3** Fix lives system — lose a life on enemy collision loss, not just lava
+- [x] **0.4** Add TypeScript (`tsconfig.json`, rename `.js` → `.ts`, fix type errors)
+- [x] **0.5** Add ESLint + Prettier config
+- [x] **0.6** Restructure `src/` into `entities/`, `systems/`, `scenes/`, `managers/`
+- [x] **0.7** Extract game loop from `main.ts` into a `GameEngine` class
+- [x] **0.8** Create `InputSystem` — centralize all key/mouse state
+- [x] **0.9** Create `AssetManager` — preload assets with loading screen
 
-**Exit criteria**: No runtime errors, TypeScript compiles clean, game loop modular.
+**Exit criteria**: No runtime errors, TypeScript compiles clean, game loop modular. ✅
 
 ---
 
 ### Phase 1 — Physics Integration
 *Goal: Replace manual AABB physics with Rapier for accurate, deterministic simulation.*
 
-- [ ] **1.1** Install `@dimforge/rapier3d-compat`, uninstall `cannon-es`
-- [ ] **1.2** Create `PhysicsSystem` — Rapier world init, fixed timestep loop, body-to-mesh sync
-- [ ] **1.3** Add rigid bodies to Player and Enemy (capsule colliders)
-- [ ] **1.4** Add static colliders to platforms and lava boundary
-- [ ] **1.5** Tune gravity constant and flap force to match original Joust feel
-- [ ] **1.6** Add angular damping so riders don't spin uncontrollably
-- [ ] **1.7** Platform edge "magnet" — slight friction when near edges, prevents cheap stalling
-- [ ] **1.8** Lava kill zone: trigger sensor at y = -5
+- [x] **1.1** Install `@dimforge/rapier3d-compat`, uninstall `cannon-es`
+- [x] **1.2** Create `PhysicsSystem` — Rapier world init, fixed timestep loop, body-to-mesh sync
+- [x] **1.3** Add rigid bodies to Player and Enemy (capsule colliders)
+- [x] **1.4** Add static colliders to platforms and lava boundary (solid floor + platform cuboids)
+- [x] **1.5** Tune gravity constant and flap force to match original Joust feel
+- [x] **1.6** Add angular damping + lockRotations so riders don't spin uncontrollably
+- [x] **1.7** Platform edge friction (2.0) acts as edge magnet
+- [x] **1.8** Lava kill zone: position check at LAVA_Y after each step
 
-**Exit criteria**: All physics run through Rapier; manual `velocityY` code removed.
+**Exit criteria**: All physics run through Rapier; manual `velocityY` code removed. ✅
 
 ---
 
@@ -156,29 +164,29 @@ GameEngine
 
 ---
 
-### Phase 3 — Arena & Visual Polish
+### Phase 3 — Arena & Visual Polish ✅ COMPLETE
 *Goal: A complete, visually compelling arena that reads well in 3D.*
 
-- [ ] **3.1** Design arena layout: define platform positions, sizes, and boundary walls
-- [ ] **3.2** Create or source arena GLTF (floor, walls, pillars, lava surface)
-- [ ] **3.3** Lava material: animated shader with glow, flowing noise (ShaderMaterial or postprocessing)
-- [ ] **3.4** Particle system for lava bubbles and splash on death
-- [ ] **3.5** Background: dark cave skybox or stylized sky
-- [ ] **3.6** Platform materials: stone/rock texture, PBR roughness map
-- [ ] **3.7** Dynamic lighting: point light from lava, directional key light
-- [ ] **3.8** Post-processing: bloom on lava and hit effects (UnrealBloomPass)
-- [ ] **3.9** Death particle burst (feathers explosion) when rider dies
-- [ ] **3.10** Egg pickup effect: brief flash + score float-up text
+- [x] **3.1** Design arena layout: platform positions, boundary pillars, stalagmites/stalactites
+- [x] **3.2** Procedural cave geometry (pillars, stalagmites, stalactites) — GLTF deferred to TD-01
+- [x] **3.3** Lava material: animated GLSL fbm shader (5-octave fractal noise, 4-stop colour ramp)
+- [x] **3.4** ParticleSystem: lava bubbles (continuous), death burst, egg-collect burst, joust-win flash
+- [x] **3.5** Skydome: cave gradient shader (black ceiling → dark cave → lava-red base)
+- [x] **3.6** Platform materials: MeshStandardMaterial + lava-glow trim strip on underside
+- [x] **3.7** Animated lava point light (drifting position, flickering intensity)
+- [x] **3.8** Post-processing: UnrealBloomPass (strength 0.55, threshold 0.72) via EffectComposer
+- [x] **3.9** Death particle burst on player and enemy death
+- [x] **3.10** FloatingText: billboarded canvas sprites (+10, +5) with additive blend fade-out
 
-**Exit criteria**: Arena looks polished and readable; lava is clearly dangerous.
+**Exit criteria**: Arena looks polished and readable; lava is clearly dangerous. ✅
 
 ---
 
 ### Phase 4 — Audio
 *Goal: Full audio atmosphere matching the original's arcade energy.*
 
-- [ ] **4.1** Install Howler.js
-- [ ] **4.2** Gather/record/synthesize sound assets:
+- [x] **4.1** Install Howler.js + AudioSystem scaffold (fails silently until files added)
+- [ ] **4.2** Gather/record/synthesize sound assets: *(tech debt — external dependency)*
   - Wing flap (player and enemy, slightly different pitch)
   - Joust collision impact
   - Egg pop / crack

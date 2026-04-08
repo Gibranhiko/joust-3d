@@ -1,3 +1,14 @@
+// ─── Rapier rigid body handle (structural interface — avoids importing WASM in entities) ──
+
+export interface RigidBodyHandle {
+  translation(): { x: number; y: number; z: number };
+  linvel(): { x: number; y: number; z: number };
+  setLinvel(v: { x: number; y: number; z: number }, wakeUp: boolean): void;
+  setTranslation(v: { x: number; y: number; z: number }, wakeUp: boolean): void;
+  setAngvel(v: { x: number; y: number; z: number }, wakeUp: boolean): void;
+  setEnabled(enabled: boolean): void;
+}
+
 // ─── Shared constants ────────────────────────────────────────────────────────
 
 export const GRAVITY        = 22;   // units / s²

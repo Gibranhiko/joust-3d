@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { ENEMY_SPEED } from '../types';
-import type { Rider }  from '../entities/Rider';
+import type { Rider } from '../entities/Rider';
 import type { WaveDef } from '../types';
+import type { PhysicsSystem } from './PhysicsSystem';
 
 type AIState = 'patrol' | 'chase' | 'evade';
 
@@ -37,7 +38,7 @@ export class AISystem {
     this.agents = [];
   }
 
-  update(deltaTime: number, playerPos: THREE.Vector3, waveCfg: WaveDef) {
+  update(deltaTime: number, playerPos: THREE.Vector3, waveCfg: WaveDef, physics?: PhysicsSystem) {
     const speed = ENEMY_SPEED * waveCfg.speed;
 
     for (const agent of this.agents) {
@@ -66,7 +67,8 @@ export class AISystem {
       }
 
       // ── Movement ───────────────────────────────────────────────────────────
-      let dx = 0, dz = 0;
+      let dx: number;
+      let dz: number;
 
       if (agent.state === 'chase') {
         dx = toPlayer.x;
@@ -75,7 +77,10 @@ export class AISystem {
         // Move away horizontally, flap hard to gain altitude
         dx = -toPlayer.x;
         dz = -toPlayer.z;
-        if (Math.random() < waveCfg.flapChance * 3) rider.flap();
+        if (Math.random() < waveCfg.flapChance * 3) {
+          rider.triggerFlapAnim();
+          if (rider.rapierBody && physics) physics.applyFlap(rider.rapierBody);
+        }
       } else {
         // patrol
         const toPatrol = new THREE.Vector3().subVectors(agent.patrolTarget, rider.position);
@@ -100,7 +105,10 @@ export class AISystem {
       }
 
       // Random flap
-      if (Math.random() < waveCfg.flapChance) rider.flap();
+      if (Math.random() < waveCfg.flapChance) {
+        rider.triggerFlapAnim();
+        if (rider.rapierBody && physics) physics.applyFlap(rider.rapierBody);
+      }
     }
   }
 }

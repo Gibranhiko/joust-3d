@@ -8,16 +8,17 @@
 
 | Layer | Chosen Tool | Version | Status |
 |-------|------------|---------|--------|
-| Renderer | Three.js | 0.180.0 | Installed, in use |
-| Physics | Rapier (`rapier3d-compat`) | latest | **Replace cannon-es** |
-| Multiplayer | Colyseus (server) | latest | **Replace raw socket.io** |
-| Audio | Howler.js | 2.x | Not yet installed |
-| Language | TypeScript | 5.x | **Migrate from JS** |
-| Build | Vite | 7.x | Installed, in use |
-| Testing | Vitest | latest | Not yet installed |
-| Server runtime | Node.js + Express | 20 LTS | Planned |
-| Client hosting | Vercel | — | Planned |
-| Server hosting | Railway | — | Planned |
+| Renderer | Three.js | 0.180.0 | ✅ Installed, in use |
+| Physics | Rapier (`rapier3d-compat`) | 0.19.3 | ⚠️ Installed — not yet wired (Phase 1) |
+| Multiplayer | Colyseus (server) | — | ❌ Not installed (Phase 8) |
+| Audio | Howler.js | 2.2.4 | ⚠️ Installed — AudioSystem scaffolded, no audio files yet |
+| Language | TypeScript | 6.0.2 | ✅ Migrated, strict mode, zero errors |
+| Build | Vite | 7.1.6 | ✅ Installed, in use |
+| Testing | Vitest | — | ❌ Not installed (tech debt) |
+| ESLint + Prettier | — | — | ❌ Not configured (Phase 0.5) |
+| Server runtime | Node.js + Express | 20 LTS | ❌ Planned (Phase 8) |
+| Client hosting | Vercel | — | ❌ Planned |
+| Server hosting | Railway | — | ❌ Planned (Phase 8) |
 
 ---
 
@@ -187,10 +188,8 @@ npm install -D typescript @types/three
 }
 ```
 
-**Migration path** (incremental — no big bang):
-1. Rename `main.js` → `main.ts`, `Player.js` → `Player.ts`, `Egg.js` → `Egg.ts`
-2. Run `npx tsc --noEmit` — fix reported errors
-3. Vite picks up TypeScript automatically — no config changes needed
+**Migration: complete.** All source files are `.ts`, strict mode enabled, zero type errors.
+`tsconfig.json` uses `"moduleResolution": "Bundler"` and `"ignoreDeprecations": "6.0"` for TS 6 compat.
 
 ---
 
