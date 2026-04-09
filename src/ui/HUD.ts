@@ -19,6 +19,8 @@ export class HUD {
   private elControlsHint: HTMLElement;
   private elMinimapWrap:  HTMLElement;
   private elComboDisplay: HTMLElement;
+  private elHealthWrap:   HTMLElement;
+  private elHealthBar:    HTMLElement;
 
   // ── Wave banner ────────────────────────────────────────────────────────────
   private elWaveBanner:        HTMLElement;
@@ -46,6 +48,8 @@ export class HUD {
     this.elControlsHint = this.get('controls-hint');
     this.elMinimapWrap  = this.get('minimap-wrap');
     this.elComboDisplay = this.get('combo-display');
+    this.elHealthWrap   = this.get('health-wrap');
+    this.elHealthBar    = this.get('health-bar');
 
     this.elWaveBanner        = this.get('wave-banner');
     this.elWaveBannerTitle   = this.get('wave-banner-title');
@@ -87,14 +91,25 @@ export class HUD {
     this.elHud.classList.remove('hidden');
     this.elControlsHint.classList.remove('hidden');
     this.elMinimapWrap.classList.remove('hidden');
+    this.elHealthWrap.classList.remove('hidden');
   }
 
   hideGameUI() {
     this.elHud.classList.add('hidden');
     this.elControlsHint.classList.add('hidden');
     this.elMinimapWrap.classList.add('hidden');
+    this.elHealthWrap.classList.add('hidden');
     this.elComboDisplay.classList.add('hidden');
     this.elWaveBanner.classList.add('hidden');
+  }
+
+  setHealth(v: number) {
+    const pct = Math.max(0, Math.min(100, v));
+    this.elHealthBar.style.width = `${pct}%`;
+    // Green → yellow → red as health drops
+    if (pct > 60)      this.elHealthBar.style.background = '#2ecc71';
+    else if (pct > 30) this.elHealthBar.style.background = '#f39c12';
+    else               this.elHealthBar.style.background = '#e74c3c';
   }
 
   // ── Score / Lives / Wave ───────────────────────────────────────────────────

@@ -172,6 +172,38 @@
     #lives  { color: #e74c3c; font-size: 14px; letter-spacing: 3px; }
     #wave   { color: #3498db; }
 
+    /* Health bar */
+    #health-wrap {
+      position: fixed;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      text-align: center;
+    }
+    #health-label {
+      font-size: 9px;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    #health-track {
+      width: 200px;
+      height: 8px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 4px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    #health-bar {
+      height: 100%;
+      width: 100%;
+      background: #2ecc71;
+      border-radius: 4px;
+      transition: width 0.1s, background 0.3s;
+    }
+
     /* Combo badge */
     #combo-display {
       position: fixed;
@@ -361,6 +393,12 @@
     </div>
   </div>
 
+  <!-- Health bar -->
+  <div id="health-wrap" class="hidden">
+    <div id="health-label">Health</div>
+    <div id="health-track"><div id="health-bar"></div></div>
+  </div>
+
   <!-- Combo display -->
   <div id="combo-display" class="hidden"></div>
 
@@ -464,7 +502,7 @@
 
   <!-- Controls hint (shown during gameplay) -->
   <div id="controls-hint" class="hidden">
-    WASD / Arrows — move &nbsp;|&nbsp; Space — flap &nbsp;|&nbsp; Esc — pause
+    WASD / Arrows — move &nbsp;|&nbsp; Space — flap &nbsp;|&nbsp; Tab (hold) — top view &nbsp;|&nbsp; Esc — pause
   </div>
 
   <script type="module" src="/src/main.ts"></script>

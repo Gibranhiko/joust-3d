@@ -85,6 +85,7 @@ export class GameEngine {
     const physics = new PhysicsSystem();
     this.scene = new GameScene(this.input, this.audio, physics, this.renderer);
 
+    this.scene.onHealthUpdate = h => this.hud.setHealth(h);
     this.scene.on('score_change', s => this.hud.update(s));
     this.scene.on('lives_change', s => this.hud.update(s));
     this.scene.on('wave_change',  s => {

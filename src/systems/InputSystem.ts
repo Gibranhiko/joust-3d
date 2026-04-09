@@ -21,6 +21,9 @@ export class InputSystem {
     if (e.code === 'Escape') {
       this._pausePressed = true;
     }
+    if (e.code === 'Tab') {
+      e.preventDefault();
+    }
   };
 
   private onKeyUp = (e: KeyboardEvent) => {
@@ -40,13 +43,13 @@ export class InputSystem {
     return false;
   }
 
-  /** True only on the frame the Escape key was pressed — consumed on read. */
   consumePause(): boolean {
-    if (this._pausePressed) {
-      this._pausePressed = false;
-      return true;
-    }
+    if (this._pausePressed) { this._pausePressed = false; return true; }
     return false;
+  }
+
+  get topViewHeld(): boolean {
+    return this.keys.has('Tab');
   }
 
   /** Lateral input as a -1..1 pair [x, z] */

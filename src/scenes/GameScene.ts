@@ -61,11 +61,18 @@ export class GameScene {
   // Combo system
   private comboCount = 0;
   private comboTimer = 0;
-  private readonly COMBO_WINDOW = 4; // seconds between kills to keep combo
+  private readonly COMBO_WINDOW = 4;
+
+  // Health system
+  private readonly MAX_HEIGHT   = 13;   // y above this = oxygen drain
+  private readonly LAVA_DRAIN   = 25;   // health/sec in lava
+  private readonly OXY_DRAIN    = 15;   // health/sec above max height
+  onHealthUpdate: ((h: number) => void) | null = null;
 
   private lavaLight!: THREE.PointLight;
   private lavaMat!: THREE.ShaderMaterial;
   private _lavaPhase = 0;
+
 
   constructor(
     input: InputSystem,
@@ -334,6 +341,7 @@ export class GameScene {
 
     this.updateSpawnQueue(clampedDt);
     this.ai.update(clampedDt, this.player.position, this.waves.config, this.physics);
+    this.updatePlayerHealth(clampedDt);
     this.updateLavaChecks();
     this.updateEggs(clampedDt);
     this.updateCollisions(clampedDt);
@@ -369,16 +377,37 @@ export class GameScene {
     }
   }
 
+  // ── Health system ──────────────────────────────────────────────────────────
+
+  private updatePlayerHealth(dt: number) {
+    if (this.player.isDead) return;
+
+    let drain = 0;
+
+    // Player feet touch lava when center is within ~1.5 units above GROUND_Y
+    if (this.player.position.y <= GROUND_Y + 1.5) {
+      drain = this.LAVA_DRAIN;
+    } else if (this.player.position.y > this.MAX_HEIGHT) {
+      drain = this.OXY_DRAIN;
+    }
+
+    if (drain > 0) {
+      this.player.health -= drain * dt;
+      if (this.player.health <= 0) {
+        this.player.health = 0;
+        this.onHealthUpdate?.(0);
+        this.particles.spawnDeathBurst(this.player.position.clone());
+        this.onPlayerDeath();
+        return;
+      }
+      this.onHealthUpdate?.(this.player.health);
+    }
+  }
+
   // ── Lava checks ────────────────────────────────────────────────────────────
 
   private updateLavaChecks() {
-    if (!this.player.isDead && this.player.rapierBody) {
-      if (this.physics.isInLava(this.player.rapierBody)) {
-        this.particles.spawnDeathBurst(this.player.position.clone());
-        this.onPlayerDeath();
-      }
-    }
-
+    // Player lava handled by health drain — only teleport enemies
     for (const e of this.enemies) {
       if (e.isEgged || e.isDead || !e.rapierBody) continue;
       if (this.physics.isInLava(e.rapierBody)) {
@@ -526,17 +555,27 @@ export class GameScene {
   // ── Camera ─────────────────────────────────────────────────────────────────
 
   private updateCamera() {
-    const target = new THREE.Vector3(
-      this.player.position.x,
-      this.player.position.y + 5,
-      this.player.position.z + 16
-    );
-    this.camera.position.lerp(target, 0.06);
-    this.camera.lookAt(
-      this.player.position.x,
-      this.player.position.y + 1,
-      this.player.position.z
-    );
+    if (this.input.topViewHeld) {
+      const px = this.player.position.x;
+      const pz = this.player.position.z;
+      this.camera.position.lerp(new THREE.Vector3(px, 38, pz), 0.1);
+      this.camera.lookAt(px, 0, pz);
+      this.camera.fov = THREE.MathUtils.lerp(this.camera.fov, 30, 0.12);
+    } else {
+      const target = new THREE.Vector3(
+        this.player.position.x,
+        this.player.position.y + 5,
+        this.player.position.z + 16
+      );
+      this.camera.position.lerp(target, 0.06);
+      this.camera.lookAt(
+        this.player.position.x,
+        this.player.position.y + 1,
+        this.player.position.z
+      );
+      this.camera.fov = THREE.MathUtils.lerp(this.camera.fov, 70, 0.12);
+    }
+    this.camera.updateProjectionMatrix();
   }
 
   // ── Death / respawn ────────────────────────────────────────────────────────
@@ -558,6 +597,8 @@ export class GameScene {
       if (this.player.rapierBody) {
         this.physics.teleport(this.player.rapierBody, 0, 2, 0);
       }
+      this.player.health = 100;
+      this.onHealthUpdate?.(100);
       this.player.isDead = false;
       this.player.group.visible = true;
     }, 1200);
