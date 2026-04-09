@@ -206,27 +206,24 @@ GameEngine
 
 ---
 
-### Phase 5 — AI & Wave System
+### Phase 5 — AI & Wave System ✅ COMPLETE
 *Goal: Progressively challenging AI enemies that feel like the original.*
 
-- [ ] **5.1** Create `AIController` with state machine: `PATROL → CHASE → EVADE → ATTACK`
-- [ ] **5.2** Patrol: fly random routes between platforms; flap to maintain altitude
-- [ ] **5.3** Chase: move toward player when in range; attempt altitude advantage
-- [ ] **5.4** Evade: if below player within collision range, flee horizontally
-- [ ] **5.5** Attack: above player → dive to collide; uses lance direction for accuracy
-- [ ] **5.6** Enemy types:
-  - **Buzzard Rider** (Bounder) — slow, predictable
-  - **Hunter** — tracks player aggressively
-  - **Shadow Lord** — fast, hard to joust, appears in late waves
-- [ ] **5.7** Create `WaveSystem`:
-  - Wave config table: enemy count, types, spawn delay, aggression level
-  - Spawn point selection (edges of arena, above platforms)
-  - "All clear" detection → wave complete → next wave starts
-  - Between-wave grace period (3 seconds, score multiplier displayed)
-- [ ] **5.8** Pterodactyl: spawns every N waves; flies predetermined path; vulnerable only when mouth open (timer-based); killing it grants bonus points
-- [ ] **5.9** Difficulty scaling: each wave, reduce enemy reaction time and increase flap frequency
+- [x] **5.1** AISystem with 4-state machine: `PATROL → CHASE → EVADE → ATTACK`
+- [x] **5.2** Patrol: fly random waypoints; flap to maintain target altitude
+- [x] **5.3** Chase: move toward player, flap for altitude advantage
+- [x] **5.4** Evade: flee horizontally + flap aggressively when player is above
+- [x] **5.5** Attack: enemy above player → accelerated dive, auto-pull-up after 2s
+- [x] **5.6** Enemy types with per-type speed, flapChance, aggroRange, reactionTime, colour:
+  - **Bounder** (red) — slow, wide reaction time, low aggro range
+  - **Hunter** (purple, fin badge) — 1.3× speed, doubles flapChance, 16u aggro
+  - **Shadow** (teal, twin horns, 12% larger) — 1.7× speed, 2.8× flapChance, attacks immediately
+- [x] **5.7** WaveSystem with 12-wave config table; staggered spawn queue (delay per enemy); typed enemy slots; pterodactyl flag per wave; grace period
+- [x] **5.8** Pterodactyl entity: figure-8 flight path, animated jaw, 1.5s vulnerable window every 6s cycle, +250 score, removed on kill
+- [x] **5.9** Difficulty scaling: speed, flapChance, aggroRange, reactionTime all tighten per wave; Shadow enemies dominate waves 8+
+- [x] **Combo system**: consecutive kills within 4s grant +5 per chain; combo label shown in FloatingText
 
-**Exit criteria**: 10+ wave progression with escalating challenge; pterodactyl appears and is defeatable.
+**Exit criteria**: 10+ wave progression with escalating challenge; pterodactyl appears and is defeatable. ✅
 
 ---
 

@@ -1,4 +1,4 @@
-import { Howl } from 'howler';
+import { Howl, Howler } from 'howler';
 
 type SfxId = 'flap' | 'enemy_flap' | 'joust_win' | 'joust_lose' | 'egg_collect' | 'death' | 'wave_clear';
 
@@ -60,4 +60,16 @@ export class AudioSystem {
   }
 
   get muted() { return this._muted; }
+
+  setMasterVolume(v: number) {
+    Howler.volume(v);
+  }
+
+  setSfxVolume(v: number) {
+    this.sfx?.volume(v);
+  }
+
+  setMusicVolume(v: number) {
+    this.music?.volume(v);
+  }
 }

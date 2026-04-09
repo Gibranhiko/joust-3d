@@ -1,3 +1,5 @@
+import type { WaveDef } from '../types';
+
 interface HudState {
   score: number;
   lives: number;
@@ -9,25 +11,52 @@ interface HudState {
  * Reads element IDs from index.html; throws clearly if any are missing.
  */
 export class HUD {
-  private elScore: HTMLElement;
-  private elLives: HTMLElement;
-  private elWave: HTMLElement;
-  private elGameOver: HTMLElement;
+  // ── In-game panels ─────────────────────────────────────────────────────────
+  private elHud:          HTMLElement;
+  private elScore:        HTMLElement;
+  private elLives:        HTMLElement;
+  private elWave:         HTMLElement;
+  private elControlsHint: HTMLElement;
+  private elMinimapWrap:  HTMLElement;
+  private elComboDisplay: HTMLElement;
+
+  // ── Wave banner ────────────────────────────────────────────────────────────
+  private elWaveBanner:        HTMLElement;
+  private elWaveBannerTitle:   HTMLElement;
+  private elWaveBannerEnemies: HTMLElement;
+
+  // ── Game over ──────────────────────────────────────────────────────────────
+  private elGameOver:   HTMLElement;
   private elFinalScore: HTMLElement;
-  private elWaveBanner: HTMLElement;
-  private elLoading: HTMLElement;
+  private elGoHighScore: HTMLElement;
+  private elNewRecord:  HTMLElement;
+
+  // ── Loading ────────────────────────────────────────────────────────────────
+  private elLoading:    HTMLElement;
   private elLoadingBar: HTMLElement;
 
   private waveBannerTimer: ReturnType<typeof setTimeout> | null = null;
+  private comboHideTimer:  ReturnType<typeof setTimeout> | null = null;
 
   constructor() {
-    this.elScore = this.get('score');
-    this.elLives = this.get('lives');
-    this.elWave = this.get('wave');
-    this.elGameOver = this.get('game-over');
-    this.elFinalScore = this.get('final-score');
-    this.elWaveBanner = this.get('wave-banner');
-    this.elLoading = this.get('loading');
+    this.elHud          = this.get('hud');
+    this.elScore        = this.get('score');
+    this.elLives        = this.get('lives');
+    this.elWave         = this.get('wave');
+    this.elControlsHint = this.get('controls-hint');
+    this.elMinimapWrap  = this.get('minimap-wrap');
+    this.elComboDisplay = this.get('combo-display');
+
+    this.elWaveBanner        = this.get('wave-banner');
+    this.elWaveBannerTitle   = this.get('wave-banner-title');
+    this.elWaveBannerEnemies = this.get('wave-banner-enemies');
+
+    this.elGameOver    = this.get('game-over');
+    this.elFinalScore  = this.get('final-score');
+    this.elGoHighScore = this.get('go-high-score');
+    this.elNewRecord   = this.get('new-record');
+
+    this.elLoading    = this.get('loading');
     this.elLoadingBar = this.get('loading-bar');
   }
 
@@ -37,14 +66,10 @@ export class HUD {
     return el;
   }
 
-  // ── Loading screen ───────────────────────────────────────────────────────────
+  // ── Loading screen ─────────────────────────────────────────────────────────
 
   setLoadingProgress(ratio: number) {
     this.elLoadingBar.style.width = `${Math.round(ratio * 100)}%`;
-  }
-
-  hideLoading() {
-    this.elLoading.classList.add('hidden');
   }
 
   showLoading() {
@@ -52,33 +77,75 @@ export class HUD {
     this.elLoadingBar.style.width = '0%';
   }
 
-  // ── Game HUD ─────────────────────────────────────────────────────────────────
+  hideLoading() {
+    this.elLoading.classList.add('hidden');
+  }
+
+  // ── In-game UI visibility ──────────────────────────────────────────────────
+
+  showGameUI() {
+    this.elHud.classList.remove('hidden');
+    this.elControlsHint.classList.remove('hidden');
+    this.elMinimapWrap.classList.remove('hidden');
+  }
+
+  hideGameUI() {
+    this.elHud.classList.add('hidden');
+    this.elControlsHint.classList.add('hidden');
+    this.elMinimapWrap.classList.add('hidden');
+    this.elComboDisplay.classList.add('hidden');
+    this.elWaveBanner.classList.add('hidden');
+  }
+
+  // ── Score / Lives / Wave ───────────────────────────────────────────────────
 
   update(s: HudState) {
     this.elScore.textContent = String(s.score);
     this.elLives.textContent = '♥'.repeat(Math.max(0, s.lives));
-    this.elWave.textContent = String(s.wave);
+    this.elWave.textContent  = String(s.wave);
   }
 
-  // ── Wave clear banner ────────────────────────────────────────────────────────
+  // ── Wave banner ────────────────────────────────────────────────────────────
 
-  showWaveClear(secondsUntilNext: number) {
-    this.elWaveBanner.textContent =
-      secondsUntilNext > 0
-        ? `Wave Clear!  Next wave in ${secondsUntilNext}s`
-        : 'Wave Clear!';
+  showWaveBanner(wave: number, cfg: WaveDef) {
+    this.elWaveBannerTitle.textContent = `Wave ${wave}`;
+
+    // Tally enemy types for the preview line
+    const counts: Record<string, number> = {};
+    for (let i = 0; i < cfg.count; i++) {
+      const t = cfg.types[i % cfg.types.length];
+      counts[t] = (counts[t] ?? 0) + 1;
+    }
+    const parts = Object.entries(counts).map(([t, n]) => `${n}× ${t}`);
+    if (cfg.pterodactyl) parts.push('+ Pterodactyl');
+    this.elWaveBannerEnemies.textContent = parts.join('  ·  ');
+
     this.elWaveBanner.classList.remove('hidden');
     if (this.waveBannerTimer) clearTimeout(this.waveBannerTimer);
     this.waveBannerTimer = setTimeout(
       () => this.elWaveBanner.classList.add('hidden'),
-      (secondsUntilNext + 0.8) * 1000
+      3200
     );
   }
 
-  // ── Game over ────────────────────────────────────────────────────────────────
+  // ── Combo display ──────────────────────────────────────────────────────────
 
-  showGameOver(score: number) {
-    this.elFinalScore.textContent = String(score);
+  showCombo(text: string) {
+    this.elComboDisplay.textContent = text;
+    this.elComboDisplay.classList.remove('hidden');
+    if (this.comboHideTimer) clearTimeout(this.comboHideTimer);
+    this.comboHideTimer = setTimeout(
+      () => this.elComboDisplay.classList.add('hidden'),
+      2000
+    );
+  }
+
+  // ── Game over ──────────────────────────────────────────────────────────────
+
+  showGameOver(score: number, highScore: number, isNewRecord: boolean) {
+    this.elFinalScore.textContent  = String(score);
+    this.elGoHighScore.textContent = String(highScore);
+    this.elNewRecord.classList.toggle('hidden', !isNewRecord);
     this.elGameOver.classList.remove('hidden');
   }
 

@@ -4,7 +4,8 @@
  */
 export class InputSystem {
   private keys: Set<string> = new Set();
-  private _flapPressed = false;
+  private _flapPressed  = false;
+  private _pausePressed = false;
 
   constructor() {
     window.addEventListener('keydown', this.onKeyDown);
@@ -16,6 +17,9 @@ export class InputSystem {
     if (e.code === 'Space') {
       e.preventDefault();
       this._flapPressed = true;
+    }
+    if (e.code === 'Escape') {
+      this._pausePressed = true;
     }
   };
 
@@ -31,6 +35,15 @@ export class InputSystem {
   consumeFlap(): boolean {
     if (this._flapPressed) {
       this._flapPressed = false;
+      return true;
+    }
+    return false;
+  }
+
+  /** True only on the frame the Escape key was pressed — consumed on read. */
+  consumePause(): boolean {
+    if (this._pausePressed) {
+      this._pausePressed = false;
       return true;
     }
     return false;

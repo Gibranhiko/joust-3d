@@ -39,23 +39,89 @@ export const PLATFORMS: PlatformDef[] = [
   { x:  0,   y:  9, z:  0,   w: 3,  d: 3,  h: 0.4 },   // centre apex
 ];
 
+// ─── Enemy types ──────────────────────────────────────────────────────────────
+
+/**
+ * Bounder  — slow, predictable. Mostly patrols. Default early-game enemy.
+ * Hunter   — tracks player aggressively, flaps frequently, tries altitude advantage.
+ * Shadow   — fast, attacks immediately, evades rarely (high risk/reward).
+ */
+export type EnemyType = 'bounder' | 'hunter' | 'shadow';
+
+export interface EnemyTypeDef {
+  speedMult: number;      // multiplier on wave base speed
+  flapMult: number;       // multiplier on wave flapChance
+  aggroRange: number;     // distance at which it leaves patrol
+  attackRange: number;    // distance at which it dives (ATTACK state)
+  reactionTime: number;   // seconds before state can change again
+  color: number;          // body hex colour
+  wingColor: number;      // wing hex colour
+}
+
+export const ENEMY_TYPE_DEFS: Record<EnemyType, EnemyTypeDef> = {
+  bounder: {
+    speedMult:    1.0,
+    flapMult:     1.0,
+    aggroRange:   10,
+    attackRange:  4,
+    reactionTime: 1.2,
+    color:        0xe74c3c, // red
+    wingColor:    0x922b21,
+  },
+  hunter: {
+    speedMult:    1.3,
+    flapMult:     2.0,
+    aggroRange:   16,
+    attackRange:  6,
+    reactionTime: 0.6,
+    color:        0x8e44ad, // purple
+    wingColor:    0x6c3483,
+  },
+  shadow: {
+    speedMult:    1.7,
+    flapMult:     2.8,
+    aggroRange:   20,
+    attackRange:  8,
+    reactionTime: 0.3,
+    color:        0x1abc9c, // teal
+    wingColor:    0x148f77,
+  },
+};
+
 // ─── Wave config ──────────────────────────────────────────────────────────────
 
 export interface WaveDef {
   count: number;
-  speed: number;   // multiplier on ENEMY_SPEED
-  flapChance: number; // probability per frame of random flap
+  types: EnemyType[];     // one entry per enemy slot; cycles if count > types.length
+  speed: number;          // base lateral speed multiplier
+  flapChance: number;     // base per-frame random-flap probability
+  pterodactyl: boolean;   // spawn pterodactyl mid-wave
+  spawnDelay: number;     // seconds between each enemy appearing (stagger)
 }
 
 export const WAVE_TABLE: WaveDef[] = [
-  { count: 2, speed: 0.7,  flapChance: 0.008 },
-  { count: 3, speed: 0.85, flapChance: 0.012 },
-  { count: 4, speed: 1.0,  flapChance: 0.016 },
-  { count: 5, speed: 1.1,  flapChance: 0.020 },
-  { count: 6, speed: 1.2,  flapChance: 0.025 },
-  { count: 6, speed: 1.35, flapChance: 0.030 },
-  { count: 7, speed: 1.5,  flapChance: 0.035 },
-  { count: 8, speed: 1.6,  flapChance: 0.040 },
+  // Wave 1 — tutorial-friendly
+  { count: 2, types: ['bounder','bounder'],                       speed: 0.70, flapChance: 0.008, pterodactyl: false, spawnDelay: 0.0 },
+  // Wave 2
+  { count: 3, types: ['bounder','bounder','bounder'],             speed: 0.85, flapChance: 0.012, pterodactyl: false, spawnDelay: 0.3 },
+  // Wave 3 — first hunter
+  { count: 3, types: ['bounder','bounder','hunter'],              speed: 0.90, flapChance: 0.015, pterodactyl: false, spawnDelay: 0.3 },
+  // Wave 4
+  { count: 4, types: ['bounder','hunter','bounder','hunter'],     speed: 1.00, flapChance: 0.018, pterodactyl: false, spawnDelay: 0.4 },
+  // Wave 5 — pterodactyl first appearance
+  { count: 4, types: ['hunter','hunter','bounder','bounder'],     speed: 1.05, flapChance: 0.022, pterodactyl: true,  spawnDelay: 0.4 },
+  // Wave 6 — first shadow
+  { count: 5, types: ['bounder','hunter','shadow','bounder','hunter'], speed: 1.15, flapChance: 0.026, pterodactyl: false, spawnDelay: 0.5 },
+  // Wave 7
+  { count: 5, types: ['hunter','shadow','hunter','bounder','shadow'],  speed: 1.25, flapChance: 0.030, pterodactyl: true,  spawnDelay: 0.5 },
+  // Wave 8
+  { count: 6, types: ['shadow','hunter','shadow','hunter','bounder','shadow'], speed: 1.35, flapChance: 0.034, pterodactyl: false, spawnDelay: 0.6 },
+  // Wave 9
+  { count: 6, types: ['shadow','shadow','hunter','shadow','hunter','shadow'],  speed: 1.45, flapChance: 0.038, pterodactyl: true,  spawnDelay: 0.6 },
+  // Wave 10+  (repeats with full shadows)
+  { count: 7, types: ['shadow','shadow','shadow','hunter','shadow','shadow','hunter'], speed: 1.55, flapChance: 0.042, pterodactyl: true,  spawnDelay: 0.7 },
+  { count: 8, types: ['shadow','shadow','shadow','shadow','shadow','shadow','shadow','shadow'], speed: 1.65, flapChance: 0.046, pterodactyl: true,  spawnDelay: 0.8 },
+  { count: 8, types: ['shadow','shadow','shadow','shadow','shadow','shadow','shadow','shadow'], speed: 1.80, flapChance: 0.050, pterodactyl: true,  spawnDelay: 0.9 },
 ];
 
 // Spawn positions for enemies (world-space, above platforms)

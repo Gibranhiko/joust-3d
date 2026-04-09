@@ -12,116 +12,97 @@
       overflow: hidden;
       font-family: 'Courier New', monospace;
       color: #fff;
+      user-select: none;
     }
 
     #canvas { display: block; width: 100vw; height: 100vh; }
 
-    /* ── HUD ── */
-    #hud {
+    /* ─── Utilities ─────────────────────────────────────────────── */
+    .hidden { display: none !important; }
+
+    .overlay {
       position: fixed;
-      top: 0; left: 0; right: 0;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .panel {
+      background: rgba(5,3,10,0.92);
+      border: 1px solid rgba(255,80,0,0.4);
+      border-radius: 14px;
+      padding: 40px 56px;
+      text-align: center;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 0 40px rgba(255,60,0,0.2);
+      min-width: 340px;
+    }
+
+    .logo {
+      font-size: 52px;
+      font-weight: bold;
+      letter-spacing: 8px;
+      color: #ff4400;
+      text-shadow: 0 0 30px #ff4400, 0 0 60px #ff2200;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      font-size: 11px;
+      letter-spacing: 4px;
+      color: rgba(255,180,100,0.6);
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 13px 0;
+      margin: 10px 0;
+      background: transparent;
+      border: 1px solid rgba(255,80,0,0.5);
+      border-radius: 7px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 15px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.18s, border-color 0.18s, color 0.18s;
+    }
+    .btn:hover {
+      background: rgba(255,68,0,0.25);
+      border-color: #ff4400;
+      color: #ff9966;
+    }
+    .btn.primary {
+      background: #c0392b;
+      border-color: #e74c3c;
+      font-size: 17px;
+    }
+    .btn.primary:hover { background: #e74c3c; }
+
+    .stat-row {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      padding: 14px 22px;
-      pointer-events: none;
-      user-select: none;
-    }
-
-    .hud-panel {
-      background: rgba(0,0,0,0.55);
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 8px;
-      padding: 8px 16px;
-      text-align: center;
-      min-width: 90px;
-    }
-
-    .hud-label {
-      font-size: 10px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: #aaa;
-    }
-
-    .hud-value {
-      font-size: 22px;
-      font-weight: bold;
+      font-size: 12px;
+      color: rgba(255,255,255,0.45);
+      margin: 4px 0;
       letter-spacing: 1px;
     }
+    .stat-val { color: #f1c40f; }
 
-    #lives { color: #e74c3c; font-size: 16px; letter-spacing: 3px; }
-    #score { color: #f1c40f; }
-    #wave  { color: #3498db; }
-
-    /* ── Wave clear banner ── */
-    #wave-banner {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0,0,0,0.75);
-      border: 2px solid #3498db;
-      border-radius: 12px;
-      padding: 16px 40px;
-      font-size: 26px;
-      color: #3498db;
-      text-align: center;
-      pointer-events: none;
-      text-shadow: 0 0 12px #3498db;
-      transition: opacity 0.4s;
-    }
-
-    /* ── Game over overlay ── */
-    #game-over {
-      position: fixed;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0,0,0,0.85);
-      border: 2px solid #e74c3c;
-      border-radius: 16px;
-      padding: 40px 60px;
-      text-align: center;
-    }
-
-    #game-over h1 {
-      font-size: 52px;
-      color: #e74c3c;
-      text-shadow: 0 0 20px #e74c3c;
-      margin-bottom: 12px;
-    }
-
-    #game-over p {
-      font-size: 22px;
-      color: #f1c40f;
-      margin-bottom: 28px;
-    }
-
-    #btn-restart {
-      background: #e74c3c;
-      color: #fff;
+    hr.divider {
       border: none;
-      border-radius: 8px;
-      padding: 12px 36px;
-      font-size: 18px;
-      font-family: inherit;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    #btn-restart:hover { background: #c0392b; }
-
-    /* ── Controls hint ── */
-    #controls-hint {
-      position: fixed;
-      bottom: 14px;
-      right: 18px;
-      font-size: 11px;
-      color: rgba(255,255,255,0.35);
-      text-align: right;
-      pointer-events: none;
+      border-top: 1px solid rgba(255,80,0,0.2);
+      margin: 20px 0;
     }
 
-    /* ── Loading screen ── */
+    /* ─── Loading ───────────────────────────────────────────────── */
     #loading {
       position: fixed;
       inset: 0;
@@ -132,58 +113,240 @@
       justify-content: center;
       z-index: 100;
     }
-
     #loading h2 {
-      font-size: 32px;
-      letter-spacing: 6px;
-      color: #e74c3c;
-      text-shadow: 0 0 20px #e74c3c;
+      font-size: 36px;
+      letter-spacing: 8px;
+      color: #ff4400;
+      text-shadow: 0 0 24px #ff4400;
       margin-bottom: 32px;
       text-transform: uppercase;
     }
-
     #loading-track {
       width: 280px;
-      height: 6px;
-      background: rgba(255,255,255,0.1);
+      height: 5px;
+      background: rgba(255,255,255,0.08);
       border-radius: 3px;
       overflow: hidden;
     }
-
     #loading-bar {
       height: 100%;
       width: 0%;
-      background: #e74c3c;
+      background: #ff4400;
       border-radius: 3px;
       transition: width 0.15s ease;
     }
-
     #loading p {
       margin-top: 16px;
-      font-size: 12px;
+      font-size: 11px;
       letter-spacing: 3px;
-      color: rgba(255,255,255,0.3);
+      color: rgba(255,255,255,0.25);
       text-transform: uppercase;
     }
 
-    .hidden { display: none !important; }
+    /* ─── HUD ───────────────────────────────────────────────────── */
+    #hud {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 12px 18px;
+      pointer-events: none;
+    }
+    .hud-panel {
+      background: rgba(0,0,0,0.55);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 7px 14px;
+      text-align: center;
+      min-width: 82px;
+    }
+    .hud-label {
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+    }
+    .hud-value { font-size: 20px; font-weight: bold; }
+    #score  { color: #f1c40f; }
+    #lives  { color: #e74c3c; font-size: 14px; letter-spacing: 3px; }
+    #wave   { color: #3498db; }
+
+    /* Combo badge */
+    #combo-display {
+      position: fixed;
+      top: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 22px;
+      font-weight: bold;
+      color: #ffaa00;
+      text-shadow: 0 0 12px #ff6600;
+      letter-spacing: 3px;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    /* ─── Minimap ───────────────────────────────────────────────── */
+    #minimap-wrap {
+      position: fixed;
+      bottom: 18px;
+      right: 18px;
+      pointer-events: none;
+    }
+    #minimap-label {
+      font-size: 8px;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.25);
+      text-align: center;
+      margin-bottom: 4px;
+    }
+    #minimap {
+      border: 1px solid rgba(255,80,0,0.35);
+      border-radius: 6px;
+      display: block;
+    }
+
+    /* ─── Wave start banner ─────────────────────────────────────── */
+    #wave-banner {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 28px;
+      color: #3498db;
+      letter-spacing: 4px;
+      text-shadow: 0 0 14px #3498db;
+      text-align: center;
+      pointer-events: none;
+      padding: 16px 40px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid rgba(52,152,219,0.4);
+      border-radius: 10px;
+    }
+    #wave-banner .wave-enemies {
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 2px;
+      margin-top: 6px;
+    }
+
+    /* ─── Main menu ─────────────────────────────────────────────── */
+    #main-menu .panel { max-width: 400px; }
+
+    /* ─── Pause menu ────────────────────────────────────────────── */
+    #pause-menu { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); }
+    #pause-menu .panel { max-width: 320px; }
+    #pause-menu h2 {
+      font-size: 28px;
+      letter-spacing: 5px;
+      color: #fff;
+      margin-bottom: 24px;
+    }
+
+    /* ─── Settings ──────────────────────────────────────────────── */
+    #settings-menu .panel { max-width: 380px; }
+    #settings-menu h2 {
+      font-size: 22px;
+      letter-spacing: 4px;
+      color: #ff9966;
+      margin-bottom: 24px;
+    }
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 14px 0;
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: rgba(255,255,255,0.7);
+    }
+    .setting-row label { text-align: left; min-width: 130px; }
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 130px;
+      height: 4px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 2px;
+      outline: none;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px; height: 14px;
+      background: #ff4400;
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    .toggle {
+      width: 42px; height: 22px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 11px;
+      border: 1px solid rgba(255,255,255,0.2);
+      cursor: pointer;
+      position: relative;
+      transition: background 0.2s;
+    }
+    .toggle.on { background: #c0392b; border-color: #e74c3c; }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      background: #fff;
+      border-radius: 50%;
+      top: 2px; left: 2px;
+      transition: left 0.2s;
+    }
+    .toggle.on::after { left: 22px; }
+
+    /* ─── Game over ─────────────────────────────────────────────── */
+    #game-over .panel { max-width: 380px; }
+    #game-over h1 {
+      font-size: 46px;
+      color: #e74c3c;
+      text-shadow: 0 0 20px #e74c3c;
+      letter-spacing: 4px;
+      margin-bottom: 8px;
+    }
+    #game-over .new-record {
+      font-size: 12px;
+      color: #f1c40f;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    #go-score-line {
+      font-size: 18px;
+      color: rgba(255,255,255,0.7);
+      margin: 6px 0;
+    }
+    #go-score-line span { color: #f1c40f; font-size: 24px; font-weight: bold; }
+
+    /* ─── Controls hint ─────────────────────────────────────────── */
+    #controls-hint {
+      position: fixed;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: rgba(255,255,255,0.2);
+      letter-spacing: 2px;
+      pointer-events: none;
+    }
   </style>
 </head>
 <body>
 
-  <!-- Loading screen -->
+  <!-- Loading -->
   <div id="loading">
     <h2>3D Joust</h2>
-    <div id="loading-track">
-      <div id="loading-bar"></div>
-    </div>
+    <div id="loading-track"><div id="loading-bar"></div></div>
     <p>Loading...</p>
   </div>
 
   <canvas id="canvas"></canvas>
 
-  <!-- HUD -->
-  <div id="hud">
+  <!-- ── HUD ─────────────────────────────────────────────────────── -->
+  <div id="hud" class="hidden">
     <div class="hud-panel">
       <div class="hud-label">Score</div>
       <div class="hud-value" id="score">0</div>
@@ -198,19 +361,110 @@
     </div>
   </div>
 
-  <!-- Wave clear banner -->
-  <div id="wave-banner" class="hidden">Wave Clear!</div>
+  <!-- Combo display -->
+  <div id="combo-display" class="hidden"></div>
 
-  <!-- Game Over -->
-  <div id="game-over" class="hidden">
-    <h1>GAME OVER</h1>
-    <p>Score: <span id="final-score">0</span></p>
-    <button id="btn-restart">Play Again</button>
+  <!-- Minimap -->
+  <div id="minimap-wrap" class="hidden">
+    <div id="minimap-label">MAP</div>
+    <canvas id="minimap"></canvas>
   </div>
 
-  <!-- Controls hint -->
-  <div id="controls-hint">
-    WASD / Arrows — move &nbsp;|&nbsp; Space — flap
+  <!-- Wave banner -->
+  <div id="wave-banner" class="hidden">
+    <div id="wave-banner-title"></div>
+    <div class="wave-enemies" id="wave-banner-enemies"></div>
+  </div>
+
+  <!-- ── Main menu ────────────────────────────────────────────────── -->
+  <div id="main-menu" class="overlay hidden">
+    <div class="panel">
+      <div class="logo">Joust</div>
+      <div class="subtitle">3D Arcade Remake</div>
+
+      <div class="stat-row">
+        <span>High Score</span>
+        <span class="stat-val" id="menu-high-score">0</span>
+      </div>
+      <div class="stat-row">
+        <span>Best Wave</span>
+        <span class="stat-val" id="menu-high-wave">1</span>
+      </div>
+      <div class="stat-row">
+        <span>Games Played</span>
+        <span class="stat-val" id="menu-total-games">0</span>
+      </div>
+
+      <hr class="divider" />
+
+      <button id="btn-play" class="btn primary">▶  Play</button>
+      <button id="btn-settings-menu" class="btn">⚙  Settings</button>
+    </div>
+  </div>
+
+  <!-- ── Pause menu ───────────────────────────────────────────────── -->
+  <div id="pause-menu" class="overlay hidden">
+    <div class="panel">
+      <h2>Paused</h2>
+      <button id="btn-resume" class="btn primary">▶  Resume</button>
+      <button id="btn-settings-pause" class="btn">⚙  Settings</button>
+      <button id="btn-quit" class="btn">⏹  Quit to Menu</button>
+    </div>
+  </div>
+
+  <!-- ── Settings ─────────────────────────────────────────────────── -->
+  <div id="settings-menu" class="overlay hidden">
+    <div class="panel">
+      <h2>Settings</h2>
+
+      <div class="setting-row">
+        <label>Master Volume</label>
+        <input type="range" id="vol-master" min="0" max="1" step="0.05" value="0.8" />
+      </div>
+      <div class="setting-row">
+        <label>SFX Volume</label>
+        <input type="range" id="vol-sfx" min="0" max="1" step="0.05" value="1.0" />
+      </div>
+      <div class="setting-row">
+        <label>Music Volume</label>
+        <input type="range" id="vol-music" min="0" max="1" step="0.05" value="0.4" />
+      </div>
+
+      <hr class="divider" />
+
+      <div class="setting-row">
+        <label>Bloom Effect</label>
+        <div id="toggle-bloom" class="toggle on"></div>
+      </div>
+      <div class="setting-row">
+        <label>Shadows</label>
+        <div id="toggle-shadows" class="toggle on"></div>
+      </div>
+
+      <hr class="divider" />
+      <button id="btn-settings-back" class="btn primary">← Back</button>
+    </div>
+  </div>
+
+  <!-- ── Game over ────────────────────────────────────────────────── -->
+  <div id="game-over" class="overlay hidden">
+    <div class="panel">
+      <h1>Game Over</h1>
+      <div class="new-record hidden" id="new-record">★ New High Score ★</div>
+      <div id="go-score-line">Score <span id="final-score">0</span></div>
+      <div class="stat-row" style="justify-content:center;margin-top:4px;">
+        <span style="color:rgba(255,255,255,0.35)">Best &nbsp;</span>
+        <span class="stat-val" id="go-high-score">0</span>
+      </div>
+      <hr class="divider" />
+      <button id="btn-restart" class="btn primary">▶  Play Again</button>
+      <button id="btn-menu" class="btn">⏏  Main Menu</button>
+    </div>
+  </div>
+
+  <!-- Controls hint (shown during gameplay) -->
+  <div id="controls-hint" class="hidden">
+    WASD / Arrows — move &nbsp;|&nbsp; Space — flap &nbsp;|&nbsp; Esc — pause
   </div>
 
   <script type="module" src="/src/main.ts"></script>

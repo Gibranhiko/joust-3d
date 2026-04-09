@@ -7,14 +7,16 @@ import { PLATFORMS, PLAYER_SPEED, GROUND_Y } from '../types';
 import { Player } from '../entities/Player';
 import { Enemy } from '../entities/Enemy';
 import { Egg } from '../entities/Egg';
+import { Pterodactyl } from '../entities/Pterodactyl';
 import { InputSystem } from '../systems/InputSystem';
 import { PhysicsSystem } from '../systems/PhysicsSystem';
 import { AISystem } from '../systems/AISystem';
 import { CollisionSystem } from '../systems/CollisionSystem';
-import { WaveSystem } from '../systems/WaveSystem';
+import { WaveSystem, SpawnOrder } from '../systems/WaveSystem';
 import { AudioSystem } from '../systems/AudioSystem';
 import { ParticleSystem } from '../ui/ParticleSystem';
 import { FloatingText } from '../ui/FloatingText';
+import { Minimap } from '../ui/Minimap';
 import { createLavaMaterial, createSkydomeMaterial } from '../shaders/LavaMaterial';
 
 export interface GameState {
@@ -34,10 +36,12 @@ export class GameScene {
   readonly scene: THREE.Scene;
   readonly camera: THREE.PerspectiveCamera;
   private composer: EffectComposer;
+  private bloomPass!: UnrealBloomPass;
 
   private player!: Player;
   private enemies: Enemy[] = [];
   private eggs: Egg[] = [];
+  private pterodactyl: Pterodactyl | null = null;
 
   private input: InputSystem;
   private physics: PhysicsSystem;
@@ -49,6 +53,15 @@ export class GameScene {
 
   private state: GameState = { score: 0, lives: 3, wave: 1, gameOver: false };
   private handlers: Map<SceneEvent, EventHandler[]> = new Map();
+
+  // Staggered spawn queue — entries fire when their delay elapses
+  private spawnQueue: (SpawnOrder & { elapsed: number })[] = [];
+  private spawnElapsed = 0;
+
+  // Combo system
+  private comboCount = 0;
+  private comboTimer = 0;
+  private readonly COMBO_WINDOW = 4; // seconds between kills to keep combo
 
   private lavaLight!: THREE.PointLight;
   private lavaMat!: THREE.ShaderMaterial;
@@ -94,14 +107,22 @@ export class GameScene {
     const composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(this.scene, this.camera));
 
-    const bloom = new UnrealBloomPass(
+    this.bloomPass = new UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
       0.55,   // strength
       0.4,    // radius
       0.72    // threshold — only bright surfaces bloom (lava, particles)
     );
-    composer.addPass(bloom);
+    composer.addPass(this.bloomPass);
     return composer;
+  }
+
+  setBloomEnabled(enabled: boolean) {
+    this.bloomPass.enabled = enabled;
+  }
+
+  drawMinimap(minimap: Minimap) {
+    minimap.draw(this.player, this.enemies, this.eggs, this.pterodactyl);
   }
 
   // ── Scene construction ──────────────────────────────────────────────────────
@@ -234,6 +255,7 @@ export class GameScene {
   }
 
   private spawnWave(_wave: number) {
+    // Remove old enemies
     for (const e of this.enemies) {
       this.physics.removeRider(e);
       e.removeFromScene(this.scene);
@@ -241,17 +263,44 @@ export class GameScene {
     this.enemies = [];
     this.ai.clear();
 
-    const cfg = this.waves.config;
-    const spawns = this.waves.spawnPositions(cfg.count);
-    for (const sp of spawns) {
-      const enemy = new Enemy(this.scene, sp);
-      this.physics.registerRider(enemy);
-      this.enemies.push(enemy);
-      this.ai.register(enemy);
+    // Remove old pterodactyl
+    if (this.pterodactyl) {
+      this.pterodactyl.removeFromScene(this.scene);
+      this.pterodactyl = null;
+    }
+
+    // Build staggered spawn queue
+    const orders = this.waves.buildSpawnOrders();
+    this.spawnQueue = orders.map(o => ({ ...o, elapsed: 0 }));
+    this.spawnElapsed = 0;
+
+    // Spawn pterodactyl if this wave calls for it
+    if (this.waves.hasPterodactyl) {
+      this.pterodactyl = new Pterodactyl(this.scene, Math.random() * Math.PI * 2);
     }
 
     this.waves.markActive();
     this.emit('wave_change', this.state);
+  }
+
+  /** Process the staggered spawn queue each frame. */
+  private updateSpawnQueue(dt: number) {
+    if (this.spawnQueue.length === 0) return;
+    this.spawnElapsed += dt;
+
+    // Fire all orders whose delay has elapsed
+    const remaining: (SpawnOrder & { elapsed: number })[] = [];
+    for (const order of this.spawnQueue) {
+      if (this.spawnElapsed >= order.delay) {
+        const enemy = new Enemy(this.scene, order.position, order.type);
+        this.physics.registerRider(enemy);
+        this.enemies.push(enemy);
+        this.ai.register(enemy);
+      } else {
+        remaining.push(order);
+      }
+    }
+    this.spawnQueue = remaining;
   }
 
   // ── Main update ─────────────────────────────────────────────────────────────
@@ -273,10 +322,12 @@ export class GameScene {
       }
     }
 
+    this.updateSpawnQueue(clampedDt);
     this.ai.update(clampedDt, this.player.position, this.waves.config, this.physics);
     this.updateLavaChecks();
     this.updateEggs(clampedDt);
-    this.updateCollisions();
+    this.updateCollisions(clampedDt);
+    this.updatePterodactyl(clampedDt);
     this.updateWave(clampedDt);
     this.updateCamera();
     this.updateLava(clampedDt);
@@ -329,24 +380,42 @@ export class GameScene {
 
   // ── Joust collision ────────────────────────────────────────────────────────
 
-  private updateCollisions() {
+  private updateCollisions(dt: number) {
     if (this.player.isDead) return;
+
+    // Combo timer decay
+    if (this.comboCount > 0) {
+      this.comboTimer -= dt;
+      if (this.comboTimer <= 0) this.comboCount = 0;
+    }
 
     const result = CollisionSystem.checkJoust(this.player, this.enemies);
 
     if (result.type === 'player_wins') {
       const { enemy } = result;
-      this.state.score += 10;
+
+      // Combo scoring
+      this.comboCount++;
+      this.comboTimer = this.COMBO_WINDOW;
+      const bonus   = (this.comboCount > 1) ? (this.comboCount - 1) * 5 : 0;
+      const points  = 10 + bonus;
+      this.state.score += points;
+
       this.audio.play('joust_win');
       this.particles.spawnJoustWin(enemy.position.clone());
-      this.floatingText.spawn('+10', enemy.position.clone(), '#aaddff');
+
+      const label = bonus > 0 ? `+${points} x${this.comboCount}!` : `+${points}`;
+      const color = bonus > 0 ? '#ffaa00' : '#aaddff';
+      this.floatingText.spawn(label, enemy.position.clone(), color);
 
       const egg = new Egg(this.scene, enemy.position.clone(), enemy);
       this.physics.registerEgg(egg);
       this.eggs.push(egg);
       enemy.toEgg();
       this.emit('score_change', this.state);
+
     } else if (result.type === 'player_loses') {
+      this.comboCount = 0;
       this.audio.play('joust_lose');
       this.particles.spawnDeathBurst(this.player.position.clone());
       this.onPlayerDeath();
@@ -369,6 +438,27 @@ export class GameScene {
       const sp = this.waves.spawnPositions(1)[0];
       egg.owner.fromEgg(sp.x, sp.y, sp.z);
 
+      this.emit('score_change', this.state);
+    }
+  }
+
+  // ── Pterodactyl ─────────────────────────────────────────────────────────────
+
+  private updatePterodactyl(dt: number) {
+    const ptero = this.pterodactyl;
+    if (!ptero || ptero.dead) return;
+
+    ptero.update(dt);
+
+    // Check if player jousts it while its mouth is open (vulnerable window)
+    if (ptero.vulnerable && ptero.distanceTo(this.player.position) < 2.0) {
+      this.state.score += Pterodactyl.KILL_SCORE;
+      this.audio.play('joust_win');
+      this.particles.spawnDeathBurst(ptero.group.position.clone());
+      this.floatingText.spawn(`+${Pterodactyl.KILL_SCORE} PTERO!`, ptero.group.position.clone(), '#ff4400');
+      ptero.kill();
+      ptero.removeFromScene(this.scene);
+      this.pterodactyl = null;
       this.emit('score_change', this.state);
     }
   }
@@ -467,6 +557,7 @@ export class GameScene {
 
   getState(): Readonly<GameState> { return this.state; }
   getWaveGrace() { return this.waves.graceSecondsLeft; }
+  get currentWaveCfg() { return this.waves.config; }
 
   on(event: SceneEvent, handler: EventHandler) {
     if (!this.handlers.has(event)) this.handlers.set(event, []);
