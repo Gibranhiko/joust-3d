@@ -31,12 +31,12 @@ export interface PlatformDef {
 }
 
 export const PLATFORMS: PlatformDef[] = [
-  { x:  0,   y:  0, z:  0,   w: 5,  d: 5,  h: 0.4 },   // centre ground
-  { x:  10,  y:  4, z:  10,  w: 4,  d: 4,  h: 0.4 },   // right-far high
-  { x: -10,  y:  2, z:  5,   w: 4,  d: 4,  h: 0.4 },   // left mid
-  { x:  5,   y:  7, z: -8,   w: 3,  d: 3,  h: 0.4 },   // right-near top
-  { x: -6,   y:  3, z: -10,  w: 4,  d: 4,  h: 0.4 },   // left-far mid
-  { x:  0,   y:  9, z:  0,   w: 3,  d: 3,  h: 0.4 },   // centre apex
+  { x:  0,   y:  0, z:  0,   w: 7,  d: 7,  h: 0.4 },   // centre ground
+  { x:  10,  y:  4, z:  10,  w: 6,  d: 6,  h: 0.4 },   // right-far high
+  { x: -10,  y:  2, z:  5,   w: 6,  d: 6,  h: 0.4 },   // left mid
+  { x:  5,   y:  7, z: -8,   w: 5,  d: 5,  h: 0.4 },   // right-near top
+  { x: -6,   y:  3, z: -10,  w: 6,  d: 6,  h: 0.4 },   // left-far mid
+  { x:  0,   y:  9, z:  0,   w: 5,  d: 5,  h: 0.4 },   // centre apex
 ];
 
 // ─── Enemy types ──────────────────────────────────────────────────────────────

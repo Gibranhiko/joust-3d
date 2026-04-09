@@ -102,9 +102,9 @@ const skyFragmentShader = /* glsl */ `
     float t = clamp(vNormY * 0.5 + 0.5, 0.0, 1.0); // 0 = bottom, 1 = top
     float tSq = t * t;
 
-    vec3 bottomGlow = vec3(0.14, 0.02, 0.00); // lava red near ground
-    vec3 midCave    = vec3(0.04, 0.03, 0.06); // dark purple cave wall
-    vec3 topCeiling = vec3(0.01, 0.01, 0.03); // near-black ceiling
+    vec3 bottomGlow = vec3(0.30, 0.06, 0.00); // lava red near ground — brighter
+    vec3 midCave    = vec3(0.10, 0.07, 0.14); // visible purple cave wall
+    vec3 topCeiling = vec3(0.04, 0.03, 0.08); // dark-purple ceiling
 
     vec3 col = mix(bottomGlow, midCave, clamp(t * 2.0, 0.0, 1.0));
     col       = mix(col, topCeiling,   clamp((t - 0.5) * 2.0, 0.0, 1.0));

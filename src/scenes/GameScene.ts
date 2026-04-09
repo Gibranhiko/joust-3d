@@ -128,30 +128,40 @@ export class GameScene {
   // ── Scene construction ──────────────────────────────────────────────────────
 
   private buildScene() {
-    this.scene.fog = new THREE.FogExp2(0x0a0609, 0.018);
+    this.scene.fog = new THREE.FogExp2(0x1a0e1a, 0.012);
 
     // ── Lighting ──────────────────────────────────────────────────────────────
 
-    const ambient = new THREE.AmbientLight(0x1a0f1f, 0.9);
+    // Bright ambient so platforms and riders are always readable
+    const ambient = new THREE.AmbientLight(0xffe0c0, 1.8);
     this.scene.add(ambient);
 
-    const sun = new THREE.DirectionalLight(0xff9966, 1.0);
-    sun.position.set(12, 20, 8);
+    // Primary sun — front-left, casts sharp shadows downward
+    const sun = new THREE.DirectionalLight(0xffd0a0, 2.2);
+    sun.position.set(12, 28, 8);
     sun.castShadow = true;
-    sun.shadow.mapSize.set(1024, 1024);
+    sun.shadow.mapSize.set(2048, 2048);
     sun.shadow.camera.near = 1;
-    sun.shadow.camera.far = 80;
-    sun.shadow.camera.left = sun.shadow.camera.bottom = -30;
-    sun.shadow.camera.right = sun.shadow.camera.top = 30;
+    sun.shadow.camera.far = 100;
+    sun.shadow.camera.left   = -35;
+    sun.shadow.camera.right  =  35;
+    sun.shadow.camera.top    =  35;
+    sun.shadow.camera.bottom = -35;
+    sun.shadow.bias = -0.001;
     this.scene.add(sun);
 
+    // Counter-light from right-back — fills the shadow side so riders stay visible
+    const fill = new THREE.DirectionalLight(0xaac8ff, 0.9);
+    fill.position.set(-10, 18, -12);
+    this.scene.add(fill);
+
     // Lava point light — animated
-    this.lavaLight = new THREE.PointLight(0xff4400, 4, 35);
+    this.lavaLight = new THREE.PointLight(0xff5500, 5, 42);
     this.lavaLight.position.set(0, GROUND_Y + 0.6, 0);
     this.scene.add(this.lavaLight);
 
-    // Secondary fill light for cave walls
-    const fillLight = new THREE.PointLight(0xff2200, 1.5, 50);
+    // Wide upward fill from lava — illuminates platform undersides and riders
+    const fillLight = new THREE.PointLight(0xff3300, 2.8, 60);
     fillLight.position.set(0, GROUND_Y + 1, 0);
     this.scene.add(fillLight);
 
@@ -174,7 +184,7 @@ export class GameScene {
     // ── Cave stalagmites (decorative geometry) ────────────────────────────────
 
     const stalaGeo = new THREE.ConeGeometry(0.5, 4, 6);
-    const stalaMat = new THREE.MeshStandardMaterial({ color: 0x1a1020, roughness: 1 });
+    const stalaMat = new THREE.MeshStandardMaterial({ color: 0x3d3050, roughness: 1 });
     const stalaPositions = [
       [-18, -3, -15], [16, -3, -12], [-14, -3, 14],
       [18, -3, 12],   [0, -3, -20],  [-20, -3, 2],
@@ -203,9 +213,9 @@ export class GameScene {
     // ── Platforms ─────────────────────────────────────────────────────────────
 
     const platMat = new THREE.MeshStandardMaterial({
-      color: 0x4a5568,
-      roughness: 0.85,
-      metalness: 0.1,
+      color: 0x8899aa,   // lighter stone — shadows read clearly against this
+      roughness: 0.80,
+      metalness: 0.05,
     });
     // Edge glow strip on each platform
     const glowMat = new THREE.MeshStandardMaterial({
@@ -232,7 +242,7 @@ export class GameScene {
 
     // ── Arena boundary pillars ─────────────────────────────────────────────────
 
-    const pillarMat = new THREE.MeshStandardMaterial({ color: 0x2d3748, roughness: 0.9 });
+    const pillarMat = new THREE.MeshStandardMaterial({ color: 0x4a4060, roughness: 0.9 });
     const pillarPositions = [
       [-20, -20], [-20, 0], [-20, 20],
       [0, -20],             [0, 20],
