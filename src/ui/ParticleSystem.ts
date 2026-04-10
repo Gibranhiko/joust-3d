@@ -220,6 +220,26 @@ export class ParticleSystem {
     this.emitters.push(emitter);
   }
 
+  /** Cyan/white sparks trailing upward — called while player is dive-dashing. */
+  spawnDiveTrail(position: THREE.Vector3) {
+    const emitter = new Emitter({
+      count: 10,
+      position: position.clone(),
+      spread: Math.PI / 4,
+      speedMin: 2,
+      speedMax: 5,
+      lifeMin: 0.15,
+      lifeMax: 0.35,
+      sizeMin: 0.07,
+      sizeMax: 0.20,
+      color: new THREE.Color(0x44ddff),
+      gravity: -3, // negative = particles drift upward as player dives down
+      once: true,
+    });
+    this.scene.add(emitter.points);
+    this.emitters.push(emitter);
+  }
+
   update(dt: number) {
     for (let i = this.emitters.length - 1; i >= 0; i--) {
       const dead = this.emitters[i].update(dt);

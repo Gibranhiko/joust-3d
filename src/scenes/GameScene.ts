@@ -64,10 +64,11 @@ export class GameScene {
   private readonly COMBO_WINDOW = 4;
 
   // Health system
-  private readonly MAX_HEIGHT   = 13;   // y above this = oxygen drain
+  private readonly MAX_HEIGHT   = 40;   // y above this = oxygen drain
   private readonly LAVA_DRAIN   = 25;   // health/sec in lava
-  private readonly OXY_DRAIN    = 15;   // health/sec above max height
+  private readonly OXY_DRAIN    = 6;    // health/sec above max height
   onHealthUpdate: ((h: number) => void) | null = null;
+  private _diveParticleTimer = 0;
 
   private lavaLight!: THREE.PointLight;
   private lavaMat!: THREE.ShaderMaterial;
@@ -375,6 +376,19 @@ export class GameScene {
       this.player.triggerFlapAnim();
       this.audio.play('flap');
     }
+
+    // Dive: hold down (S / ArrowDown) while airborne → fast descent + trail
+    const diving = !this.player.onGround && this.input.isDown('ShiftLeft');
+    if (diving && this.player.rapierBody) {
+      this.physics.applyDive(this.player.rapierBody);
+      this._diveParticleTimer -= dt;
+      if (this._diveParticleTimer <= 0) {
+        this.particles.spawnDiveTrail(this.player.position.clone());
+        this._diveParticleTimer = 0.06;
+      }
+    } else {
+      this._diveParticleTimer = 0;
+    }
   }
 
   // ── Health system ──────────────────────────────────────────────────────────
@@ -393,6 +407,7 @@ export class GameScene {
 
     if (drain > 0) {
       this.player.health -= drain * dt;
+      this.player.flashHit();
       if (this.player.health <= 0) {
         this.player.health = 0;
         this.onHealthUpdate?.(0);
@@ -456,6 +471,7 @@ export class GameScene {
     } else if (result.type === 'player_loses') {
       this.comboCount = 0;
       this.audio.play('joust_lose');
+      this.player.flashHit();
       this.particles.spawnDeathBurst(this.player.position.clone());
       this.onPlayerDeath();
     }
@@ -558,10 +574,12 @@ export class GameScene {
     if (this.input.topViewHeld) {
       const px = this.player.position.x;
       const pz = this.player.position.z;
+      this.camera.up.set(0, 0, -1); // fix "north = up on screen" so player rotation doesn't spin the view
       this.camera.position.lerp(new THREE.Vector3(px, 38, pz), 0.1);
       this.camera.lookAt(px, 0, pz);
       this.camera.fov = THREE.MathUtils.lerp(this.camera.fov, 30, 0.12);
     } else {
+      this.camera.up.set(0, 1, 0); // restore default
       const target = new THREE.Vector3(
         this.player.position.x,
         this.player.position.y + 5,
@@ -583,6 +601,7 @@ export class GameScene {
   private onPlayerDeath() {
     if (this.player.isDead) return;
     this.player.isDead = true;
+    this.player.group.visible = false;
     this.state.lives--;
     this.audio.play('death');
     this.emit('lives_change', this.state);

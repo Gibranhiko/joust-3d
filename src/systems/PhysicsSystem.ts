@@ -27,15 +27,15 @@ const G_EGG      = 0x0008;
 
 // Lava floor  — member: LAVA,     filter: RIDER | EGG
 const GRP_LAVA     = G_LAVA     | (( 0x0004 | G_EGG) << 16);
-// Platforms   — member: PLATFORM, filter: EGG only   (riders pass through via manual one-way)
-const GRP_PLATFORM = G_PLATFORM | (  G_EGG            << 16);
-// Rider capsule — member: RIDER,  filter: LAVA only
-const GRP_RIDER    = 0x0004     | (  G_LAVA            << 16);
+// Platforms   — member: PLATFORM, filter: RIDER | EGG  (solid from all sides)
+const GRP_PLATFORM = G_PLATFORM | (( 0x0004 | G_EGG) << 16);
+// Rider capsule — member: RIDER,  filter: LAVA | PLATFORM
+const GRP_RIDER    = 0x0004     | (( G_LAVA | G_PLATFORM) << 16);
 // Egg ball    — member: EGG,      filter: LAVA | PLATFORM
 const GRP_EGG      = G_EGG      | (( G_LAVA | G_PLATFORM) << 16);
 
-// Raycast group for ground detection: cast as RIDER, detect LAVA surfaces
-const RAY_GROUPS_RIDER = 0x0004 | (G_LAVA << 16);
+// Raycast group for ground detection: detect LAVA + PLATFORM surfaces
+const RAY_GROUPS_RIDER = 0x0004 | ((G_LAVA | G_PLATFORM) << 16);
 
 // How far below the body origin to cast the "on ground?" ray
 const GROUND_RAY_LEN = FOOT_OFFSET + 0.2;
@@ -172,6 +172,14 @@ export class PhysicsSystem {
 
   // ── Per-frame controls ────────────────────────────────────────────────────
 
+  applyDive(handle: RigidBodyHandle) {
+    const body = handle as unknown as RAPIER.RigidBody;
+    const vel  = body.linvel();
+    // Accelerate downward each frame, cap at -28 units/sec
+    body.setLinvel({ x: vel.x, y: Math.max(vel.y - 18, -28), z: vel.z }, true);
+    body.wakeUp();
+  }
+
   applyFlap(handle: RigidBodyHandle) {
     const body = handle as unknown as RAPIER.RigidBody;
     const vel  = body.linvel();
@@ -290,10 +298,6 @@ export class PhysicsSystem {
     let steps = 0;
     while (this.accumulator >= FIXED_DT && steps < MAX_STEPS) {
       this.world.step();
-      // One-way platform correction applied after each sub-step
-      for (const entry of this.riders) {
-        this.handleOneWayPlatforms(entry);
-      }
       this.accumulator -= FIXED_DT;
       steps++;
     }

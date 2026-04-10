@@ -12,18 +12,18 @@ export class InputSystem {
     window.addEventListener('keyup',   this.onKeyUp);
   }
 
+  private readonly GAME_KEYS = new Set([
+    'Space', 'Tab', 'Escape',
+    'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown',
+    'KeyW', 'KeyA', 'KeyS', 'KeyD',
+    'ShiftLeft', 'ShiftRight',
+  ]);
+
   private onKeyDown = (e: KeyboardEvent) => {
+    if (this.GAME_KEYS.has(e.code)) e.preventDefault();
     this.keys.add(e.code);
-    if (e.code === 'Space') {
-      e.preventDefault();
-      this._flapPressed = true;
-    }
-    if (e.code === 'Escape') {
-      this._pausePressed = true;
-    }
-    if (e.code === 'Tab') {
-      e.preventDefault();
-    }
+    if (e.code === 'Space')  this._flapPressed  = true;
+    if (e.code === 'Escape') this._pausePressed = true;
   };
 
   private onKeyUp = (e: KeyboardEvent) => {

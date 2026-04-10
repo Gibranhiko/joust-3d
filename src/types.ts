@@ -31,12 +31,27 @@ export interface PlatformDef {
 }
 
 export const PLATFORMS: PlatformDef[] = [
-  { x:  0,   y:  0, z:  0,   w: 7,  d: 7,  h: 0.4 },   // centre ground
-  { x:  10,  y:  4, z:  10,  w: 6,  d: 6,  h: 0.4 },   // right-far high
-  { x: -10,  y:  2, z:  5,   w: 6,  d: 6,  h: 0.4 },   // left mid
-  { x:  5,   y:  7, z: -8,   w: 5,  d: 5,  h: 0.4 },   // right-near top
-  { x: -6,   y:  3, z: -10,  w: 6,  d: 6,  h: 0.4 },   // left-far mid
-  { x:  0,   y:  9, z:  0,   w: 5,  d: 5,  h: 0.4 },   // centre apex
+  // ── Original platforms (wider + fatter) ──────────────────────────────────
+  { x:  0,   y:  0,  z:  0,   w: 9,  d: 9,  h: 0.7 },  // centre ground
+  { x:  11,  y:  4,  z:  10,  w: 7,  d: 7,  h: 0.6 },  // right-far
+  { x: -11,  y:  2,  z:  5,   w: 7,  d: 7,  h: 0.6 },  // left mid
+  { x:  5,   y:  7,  z: -8,   w: 6,  d: 6,  h: 0.6 },  // right-near top
+  { x: -6,   y:  3,  z: -10,  w: 7,  d: 7,  h: 0.6 },  // left-far mid
+  { x:  0,   y:  9,  z:  0,   w: 6,  d: 6,  h: 0.6 },  // centre apex
+
+  // ── Gateway row — two platforms flanking the centre at mid height ─────────
+  { x: -9,   y:  5,  z:  1,   w: 5,  d: 5,  h: 0.6 },  // gateway left
+  { x:  9,   y:  5,  z:  1,   w: 5,  d: 5,  h: 0.6 },  // gateway right
+
+  // ── Upper gateway — higher arch, slightly back ────────────────────────────
+  { x: -8,   y:  8,  z: -6,   w: 5,  d: 5,  h: 0.6 },  // upper gate left
+  { x:  8,   y:  8,  z: -6,   w: 5,  d: 5,  h: 0.6 },  // upper gate right
+
+  // ── Extra landing zones ───────────────────────────────────────────────────
+  { x:  0,   y:  3,  z:  14,  w: 6,  d: 5,  h: 0.6 },  // front ledge
+  { x:  0,   y:  6,  z: -14,  w: 6,  d: 5,  h: 0.6 },  // back ledge
+  { x: -14,  y:  5,  z: -2,   w: 4,  d: 5,  h: 0.6 },  // far left wall
+  { x:  14,  y:  5,  z: -2,   w: 4,  d: 5,  h: 0.6 },  // far right wall
 ];
 
 // ─── Enemy types ──────────────────────────────────────────────────────────────

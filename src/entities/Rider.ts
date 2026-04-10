@@ -58,6 +58,14 @@ export class Rider {
   private flapAngle  = 0;
   private legAngle   = 0;
 
+  // Hit flash / blink
+  private _flashTimer    = 0;
+  private _flashPhase    = 0; // drives blink oscillation
+  private _flashInited   = false;
+  private _flashMeshes:  THREE.Mesh[]   = [];
+  private _origColors:   THREE.Color[]  = [];
+  private _flashColor    = new THREE.Color(0xff1111);
+
   constructor(
     scene: THREE.Scene,
     pos: { x: number; y: number; z: number },
@@ -169,6 +177,22 @@ export class Rider {
 
   // ── Animation ─────────────────────────────────────────────────────────────
 
+  /**
+   * Flash the rider red briefly. Lazy-inits color cache on first call so
+   * Enemy subclass colour overrides are already applied.
+   */
+  flashHit() {
+    if (!this._flashInited) {
+      this._flashMeshes = [this.ostrichMesh, this.body];
+      this._origColors  = this._flashMeshes.map(
+        m => (m.material as THREE.MeshLambertMaterial).color.clone()
+      );
+      this._flashInited = true;
+    }
+    // Refresh timer — keeps blinking as long as damage is applied
+    this._flashTimer = 0.35;
+  }
+
   triggerFlapAnim() {
     if (this.isEgged || this.isDead) return;
     this.isFlapping = true;
@@ -177,6 +201,24 @@ export class Rider {
   }
 
   animate(deltaTime: number) {
+    // Hit blink — rapidly oscillates between red and original color
+    if (this._flashTimer > 0) {
+      this._flashTimer -= deltaTime;
+      this._flashPhase  += deltaTime * 28; // ~14 blinks/sec
+      const t = Math.abs(Math.sin(this._flashPhase)); // 0 = original, 1 = red
+      for (let i = 0; i < this._flashMeshes.length; i++) {
+        (this._flashMeshes[i].material as THREE.MeshLambertMaterial).color
+          .lerpColors(this._origColors[i], this._flashColor, t);
+      }
+      if (this._flashTimer <= 0) {
+        // Restore originals cleanly when done
+        for (let i = 0; i < this._flashMeshes.length; i++) {
+          (this._flashMeshes[i].material as THREE.MeshLambertMaterial).color.copy(this._origColors[i]);
+        }
+        this._flashPhase = 0;
+      }
+    }
+
     if (this.isFlapping) {
       this.flapTimer -= deltaTime;
       this.flapAngle += 18 * deltaTime;
