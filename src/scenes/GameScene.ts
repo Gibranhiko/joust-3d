@@ -3,7 +3,8 @@ import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 
-import { PLATFORMS, PLAYER_SPEED, GROUND_Y } from '../types';
+import { PLAYER_SPEED, GROUND_Y } from '../types';
+import { activePlatforms as PLATFORMS } from '../platformLayout';
 import { Player } from '../entities/Player';
 import { Enemy } from '../entities/Enemy';
 import { Egg } from '../entities/Egg';
@@ -29,8 +30,8 @@ export interface GameState {
 type SceneEvent = 'score_change' | 'lives_change' | 'wave_change' | 'game_over' | 'wave_clear';
 type EventHandler = (state: GameState) => void;
 
-const ARENA_MIN = new THREE.Vector3(-22, -Infinity, -22);
-const ARENA_MAX = new THREE.Vector3(22, Infinity, 22);
+const ARENA_MIN = new THREE.Vector3(-28, -Infinity, -28);
+const ARENA_MAX = new THREE.Vector3(28, Infinity, 28);
 
 export class GameScene {
   readonly scene: THREE.Scene;
@@ -252,9 +253,9 @@ export class GameScene {
 
     const pillarMat = new THREE.MeshStandardMaterial({ color: 0x4a4060, roughness: 0.9 });
     const pillarPositions = [
-      [-20, -20], [-20, 0], [-20, 20],
-      [0, -20],             [0, 20],
-      [20, -20],  [20, 0],  [20, 20],
+      [-26, -26], [-26, 0], [-26, 26],
+      [0,   -26],           [0,   26],
+      [26,  -26], [26,  0], [26,  26],
     ] as [number, number][];
     for (const [x, z] of pillarPositions) {
       const pillarGeo = new THREE.CylinderGeometry(0.6, 0.8, 22, 8);

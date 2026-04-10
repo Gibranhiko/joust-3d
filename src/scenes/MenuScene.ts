@@ -1,6 +1,6 @@
 import type { SaveManager } from '../managers/SaveManager';
 
-type MenuEvent = 'play' | 'settings';
+type MenuEvent = 'play' | 'settings' | 'edit' | 'randomize';
 type MenuHandler = () => void;
 
 /**
@@ -20,8 +20,10 @@ export class MenuScene {
     this.elHighWave   = this.get('menu-high-wave');
     this.elTotalGames = this.get('menu-total-games');
 
-    this.get('btn-play').addEventListener('click', () => this.emit('play'));
+    this.get('btn-play').addEventListener('click',          () => this.emit('play'));
     this.get('btn-settings-menu').addEventListener('click', () => this.emit('settings'));
+    this.get('btn-edit').addEventListener('click',          () => this.emit('edit'));
+    this.get('btn-randomize').addEventListener('click',     () => this.emit('randomize'));
   }
 
   private get(id: string): HTMLElement {

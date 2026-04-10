@@ -8,8 +8,10 @@ import { AssetManager } from './managers/AssetManager';
 import { SaveManager } from './managers/SaveManager';
 import { HUD } from './ui/HUD';
 import { Minimap } from './ui/Minimap';
+import { PlatformEditor } from './ui/PlatformEditor';
+import { randomizeLayout } from './platformLayout';
 
-type AppState = 'loading' | 'menu' | 'playing' | 'paused' | 'game_over';
+type AppState = 'loading' | 'menu' | 'editing' | 'playing' | 'paused' | 'game_over';
 
 export class GameEngine {
   private renderer: THREE.WebGLRenderer;
@@ -22,6 +24,7 @@ export class GameEngine {
 
   private menu:   MenuScene;
   private scene:  GameScene | null = null;
+  private editor: PlatformEditor | null = null;
 
   private appState: AppState = 'loading';
   private lastTime  = 0;
@@ -152,11 +155,10 @@ export class GameEngine {
         this.scene.render();
         this.scene.drawMinimap(this.minimap);
       }
+    } else if (this.appState === 'editing') {
+      this.editor?.render();
     } else if (this.appState === 'paused' || this.appState === 'menu' || this.appState === 'game_over') {
-      // Keep rendering background scene while menus are open
-      if (this.scene) {
-        this.scene.render();
-      }
+      if (this.scene) this.scene.render();
     }
   };
 
@@ -166,6 +168,8 @@ export class GameEngine {
     // Main menu
     this.menu.on('play',     () => this.startGame());
     this.menu.on('settings', () => this.openSettings('menu'));
+    this.menu.on('edit',     () => this.openEditor());
+    this.menu.on('randomize',() => { randomizeLayout(); });
 
     // Pause menu
     this.get('btn-resume')?.addEventListener('click',        () => this.resume());
@@ -282,6 +286,17 @@ export class GameEngine {
   }
 
   // ── Quit to menu ──────────────────────────────────────────────────────────────
+
+  private openEditor() {
+    this.menu.hide();
+    this.appState = 'editing';
+    this.editor = new PlatformEditor(this.renderer);
+    this.editor.onDone = () => {
+      this.editor = null;
+      this.appState = 'menu';
+      this.goMenu();
+    };
+  }
 
   private quitToMenu() {
     this.hidePauseMenu();

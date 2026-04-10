@@ -1,6 +1,7 @@
 import RAPIER from '@dimforge/rapier3d-compat';
 import * as THREE from 'three';
-import { PLATFORMS, GRAVITY, LAVA_Y, GROUND_Y, RigidBodyHandle } from '../types';
+import { GRAVITY, LAVA_Y, GROUND_Y, RigidBodyHandle } from '../types';
+import { activePlatforms as PLATFORMS } from '../platformLayout';
 import type { Rider } from '../entities/Rider';
 import type { Egg } from '../entities/Egg';
 
